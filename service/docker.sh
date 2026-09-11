@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 #
 # Xray-script:
-#   https://github.com/zxcvos/Xray-script
+#   https://github.com/healiz/Xray-script
 #
 # docker-install:
 #   https://github.com/docker/docker-install
@@ -20,7 +20,7 @@
 # 功能描述: 提供 Docker 环境管理功能，包括安装 Docker、管理 Cloudflare WARP 容器、
 #           以及管理 Cloudreve (v3 和 v4) 容器服务。
 #           支持多语言提示信息。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, jq, wget, sed, awk, grep, curl, openssl, docker, docker-compose

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 #
 # Xray-script:
-#   https://github.com/zxcvos/Xray-script
+#   https://github.com/healiz/Xray-script
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: handler.sh
@@ -11,7 +11,7 @@
 #           负责执行具体的操作，如安装/卸载 Xray/Nginx、配置文件生成、
 #           启动/停止服务、管理 Docker 容器、处理路由规则等。
 #           由 main.sh 调用，根据传入参数执行相应功能。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, jq, curl, systemctl, crontab, sed, awk, grep, cut, tr
@@ -1481,6 +1481,69 @@ function handler_install() {
 }
 
 # =============================================================================
+# 函数名称: handler_update_xray
+# 功能描述: 更新 Xray 核心到最新版本。
+#           1. 获取当前安装的 Xray 版本。
+#           2. 从 GitHub API 获取最新的稳定版本。
+#           3. 比较当前版本和最新版本。
+#           4. 如果有新版本，则进行更新。
+#           5. 重启 Xray 服务。
+# 参数: 无
+# 返回值: 无 (通过调用外部脚本执行更新)
+# =============================================================================
+function handler_update_xray() {
+    # 获取当前安装的 Xray 版本
+    local current_version="$(xray version 2>/dev/null | head -n 1 | awk '{print $2}')"
+    if [[ -z "${current_version}" ]]; then
+        echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.not_installed")" >&2
+        return 1
+    fi
+
+    # 从 GitHub API 获取最新的稳定版本
+    local latest_version="$(curl -fsSL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')"
+    if [[ -z "${latest_version}" || "${latest_version}" == "null" ]]; then
+        echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.fetch_failed")" >&2
+        return 1
+    fi
+
+    # 显示当前版本和最新版本
+    echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.current_version"): ${current_version}" >&2
+    echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.latest_version"): ${latest_version}" >&2
+
+    # 比较当前版本和最新版本
+    if [[ "${current_version}" == "${latest_version}" ]]; then
+        echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.already_latest")" >&2
+        return 0
+    fi
+
+    # 询问用户是否更新
+    echo -e "${YELLOW}[$(echo "$I18N_DATA" | jq -r '.title.tip')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.confirm")" >&2
+    read -rp "$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.yes_no") " confirm
+    if [[ "${confirm,,}" != "y" && "${confirm,,}" != "yes" ]]; then
+        echo -e "${YELLOW}[$(echo "$I18N_DATA" | jq -r '.title.tip')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.cancelled")" >&2
+        return 0
+    fi
+
+    # 执行更新
+    echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.updating")" >&2
+    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root --version "${latest_version}"
+
+    # 检查更新是否成功
+    if [[ $? -eq 0 ]]; then
+        # 更新脚本配置中的版本号
+        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg xray "${latest_version}" '.xray.version = $xray')"
+        echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+
+        echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.success")" >&2
+        # 重启 Xray 服务
+        handler_restart
+    else
+        echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.failed")" >&2
+        return 1
+    fi
+}
+
+# =============================================================================
 # 函数名称: handler_purge
 # 功能描述: 卸载 Xray 核心及其配置。
 # 参数: 无
@@ -2191,6 +2254,7 @@ function main() {
     --start) handler_start ;;     # 启动 Xray
     --stop) handler_stop ;;       # 停止 Xray
     --restart) handler_restart ;; # 重启 Xray
+    --update-xray) handler_update_xray ;; # 更新 Xray 核心
     esac
 }
 

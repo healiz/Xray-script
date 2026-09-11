@@ -2,11 +2,11 @@
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: install.sh
-# 脚本仓库: https://github.com/zxcvos/Xray-script
+# 脚本仓库: https://github.com/healiz/Xray-script
 # 功能描述: Xray-script 项目的安装引导脚本。
 #           负责检查和安装系统依赖、下载项目文件、处理命令行参数、
 #           初始化配置、设置语言以及启动主菜单。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, curl, wget, git, jq, sed, awk, grep
@@ -22,7 +22,7 @@
 #   - 最优组合示例: https://github.com/lxhao61/integrated-examples
 #   - xhttp 五合一配置: https://github.com/XTLS/Xray-core/discussions/4118
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 # =============================================================================
 
 # set -Eeuxo pipefail
@@ -404,7 +404,7 @@ function download_github_files() {
 function download_xray_script_files() {
     local target_dir="$1" # 本地目标根目录
     # 定义 GitHub API 项目 URL
-    local script_github_api="https://api.github.com/repos/zxcvos/xray-script/tarball/main"
+    local script_github_api="https://api.github.com/repos/healiz/xray-script/tarball/main"
 
     # 调用 download_github_files 下载项目
     download_github_files "${target_dir}" "${script_github_api}"
@@ -419,7 +419,7 @@ function download_xray_script_files() {
 # =============================================================================
 function check_xray_script_version() {
     # 定义 GitHub API URL 和本地版本文件路径
-    local script_config_github_url="https://raw.githubusercontent.com/zxcvos/Xray-script/main/config.json"
+    local script_config_github_url="https://raw.githubusercontent.com/healiz/Xray-script/main/config.json"
     local is_update='n' # 初始化更新标志为 'n' (不更新)
 
     # 读取本地版本号
@@ -520,7 +520,7 @@ function main() {
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
     if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
-        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/zxcvos/Xray-script/main/config.json
+        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/healiz/Xray-script/main/config.json
     fi
 
     # 处理命令行参数中的快速安装和自定义目录选项

@@ -38,6 +38,7 @@
       "option7": "分享链接与二维码",
       "option8": "信息统计",
       "option9": "管理配置",
+      "option10": "更新 Xray 核心",
       "option0": "退出"
     },
     "full_installation": {
@@ -455,6 +456,21 @@
       "opt_domain": "指定域名",
       "opt_email": "指定 acme.sh 账户邮箱",
       "opt_ca": "指定 CA 服务器(zerossl 或 letsencrypt)"
+    }
+  },
+  "handler": {
+    "xray_update": {
+      "not_installed": "Xray 未安装，无法更新。",
+      "fetch_failed": "获取最新版本失败，请检查网络连接。",
+      "current_version": "当前版本",
+      "latest_version": "最新版本",
+      "already_latest": "已经是最新版本，无需更新。",
+      "confirm": "发现新版本，是否更新？",
+      "yes_no": "请输入 y/n: ",
+      "cancelled": "已取消更新。",
+      "updating": "正在更新 Xray 核心...",
+      "success": "Xray 核心更新成功！",
+      "failed": "Xray 核心更新失败，请检查网络连接。"
     }
   },
   "nginx": {

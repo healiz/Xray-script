@@ -2,11 +2,11 @@
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: ssl.sh
-# 脚本仓库: https://github.com/zxcvos/Xray-script
+# 脚本仓库: https://github.com/healiz/Xray-script
 # 功能描述: 使用 acme.sh 管理 SSL 证书的脚本。
 #           支持安装/更新/卸载 acme.sh，签发/续期/停止续期证书，
 #           检查证书状态和信息，以及管理 Nginx 配置。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, curl, wget, git, jq, sed, awk, grep, nginx, systemctl, acme.sh
@@ -21,7 +21,7 @@
 #   - acme.sh 官方仓库: https://github.com/acmesh-official/acme.sh
 #   - ZeroSSL CA: https://zerossl.com/
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 # =============================================================================
 
 # set -Eeuxo pipefail

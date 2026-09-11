@@ -2,11 +2,11 @@
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: main.sh
-# 脚本仓库: https://github.com/zxcvos/Xray-script
+# 脚本仓库: https://github.com/healiz/Xray-script
 # 功能描述: Xray-script 项目的主要管理脚本。
 #           提供交互式菜单和命令行接口，用于安装、配置、管理 Xray-core
 #           和相关服务（如 Nginx, GeoIP, WARP 等），支持多语言。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, jq, cut, sed
@@ -14,7 +14,7 @@
 #   - ${SCRIPT_CONFIG_DIR}/config.json: 用于读取语言设置 (language) 和脚本配置
 #   - ${I18N_DIR}/${lang}.json: 用于读取具体的提示文本 (i18n 数据文件)
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 # =============================================================================
 
 # set -Eeuxo pipefail
@@ -468,6 +468,7 @@ function processes_index() {
     7) exec_handler '--share' ;;      # 选择 7：显示分享链接
     8) exec_handler '--traffic' ;;    # 选择 8：显示流量统计
     9) processes_config ;;            # 选择 9：进入配置管理流程
+    10) exec_handler '--update-xray' ;; # 选择 10：更新 Xray 核心
     *) exit 0 ;;                      # 其他情况：退出脚本
     esac
 }

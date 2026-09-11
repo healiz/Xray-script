@@ -38,6 +38,7 @@
       "option7": "Share Link & QR Code",
       "option8": "Traffic Statistics",
       "option9": "Manage Configuration",
+      "option10": "Update Xray Core",
       "option0": "Exit"
     },
     "full_installation": {
@@ -455,6 +456,21 @@
       "opt_domain": "Specify domain",
       "opt_email": "Specify acme.sh account email",
       "opt_ca": "Specify CA server (zerossl or letsencrypt)"
+    }
+  },
+  "handler": {
+    "xray_update": {
+      "not_installed": "Xray is not installed, cannot update.",
+      "fetch_failed": "Failed to fetch the latest version, please check your network connection.",
+      "current_version": "Current version",
+      "latest_version": "Latest version",
+      "already_latest": "Already on the latest version, no update needed.",
+      "confirm": "New version found, do you want to update?",
+      "yes_no": "Please enter y/n: ",
+      "cancelled": "Update cancelled.",
+      "updating": "Updating Xray core...",
+      "success": "Xray core updated successfully!",
+      "failed": "Xray core update failed, please check your network connection."
     }
   },
   "nginx": {

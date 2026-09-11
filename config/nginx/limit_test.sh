@@ -2,7 +2,7 @@
 #
 # Use the curl command to simulate different User-Agents for testing Nginx configuration.
 #
-# Copyright (C) 2023 zxcvos
+# Copyright (C) 2023 healiz
 
 # color
 readonly RED='\033[1;31;31m'

@@ -80,7 +80,7 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
 * 获取
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh
+  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/healiz/Xray-script/main/install.sh
   ```
 
 * 使用
@@ -111,7 +111,7 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
 * 快速启动(界面)
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
+  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/healiz/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
   ```
 
 ## 脚本界面
@@ -124,7 +124,7 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
   / . \  | |  | |    | |       | |    | |     
  /_/ \_\ |_|  |_|    |_|       |_|    |_|     
 
-Copyright (C) zxcvos | https://github.com/zxcvos/Xray-script
+Copyright (C) healiz | https://github.com/healiz/Xray-script
 
 -------------------------------------------
 Xray       : v25.7.26

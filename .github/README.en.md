@@ -81,7 +81,7 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
 * Download
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh
+  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/healiz/Xray-script/main/install.sh
   ```
 
 * Usage
@@ -112,7 +112,7 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
 * Quick start (UI)
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
+  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/healiz/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
   ```
 
 ## Script UI
@@ -125,7 +125,7 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
   / . \  | |  | |    | |       | |    | |     
  /_/ \_\ |_|  |_|    |_|       |_|    |_|     
 
-Copyright (C) zxcvos | https://github.com/zxcvos/Xray-script
+Copyright (C) healiz | https://github.com/healiz/Xray-script
 
 -------------------------------------------
 Xray       : v25.7.26

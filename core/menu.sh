@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 #
 # Xray-script:
-#   https://github.com/zxcvos/Xray-script
+#   https://github.com/healiz/Xray-script
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: menu.sh
 # 功能描述: 提供交互式菜单界面，用于 Xray-script 项目的主控制台。
 #           显示各种配置选项、状态信息和操作菜单，支持多语言。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, jq, sed, base64
@@ -133,6 +133,7 @@ function menu_index() {
     echo -e "${GREEN}7.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.option7")"
     echo -e "${GREEN}8.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.option8")"
     echo -e "${GREEN}9.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.option9")"
+    echo -e "${GREEN}10.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.option10")"
 
     # 打印退出选项
     echo -e "------------------------------------------------------"

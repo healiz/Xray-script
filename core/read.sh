@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 zxcvos
+# Copyright (C) 2025 healiz
 #
 # Xray-script:
-#   https://github.com/zxcvos/Xray-script
+#   https://github.com/healiz/Xray-script
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: read.sh
 # 功能描述: 根据传入的参数，从国际化 (i18n) 配置文件中读取对应的提示信息，
 #           并从标准输入读取用户输入，返回用户输入的内容。
 #           主要用于交互式配置脚本，提供多语言支持。
-# 作者: zxcvos
+# 作者: healiz
 # 时间: 2025-07-25
 # 版本: 1.0.0
 # 依赖: bash, jq, cut, sed
