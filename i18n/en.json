@@ -22,7 +22,12 @@
       "not_installed": "Not Installed",
       "not_configured": "Not Configured",
       "enabled": "Enabled",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "running": "Running",
+      "stopped": "Stopped",
+      "up_to_date": "Up to date",
+      "updatable": "Update available",
+      "unknown": "Unknown"
     },
     "index": {
       "description": "Xray Management Script",

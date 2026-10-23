@@ -42,6 +42,8 @@ readonly I18N_DIR="${PROJECT_ROOT}/i18n"                       # 国际化文件
 readonly CONFIG_DIR="${PROJECT_ROOT}/config"                   # 配置文件目录
 readonly GENERATE_PATH="${CUR_DIR}/generate.sh"                # 项目中的 generate.sh 脚本路径
 readonly SCRIPT_CONFIG_PATH="${SCRIPT_CONFIG_DIR}/config.json" # 脚本主要配置文件路径
+readonly SCRIPT_CONFIG_GITHUB_URL="https://raw.githubusercontent.com/healiz/Xray-script/main/config.json"
+readonly XRAY_CONFIG_PATH="/usr/local/etc/xray/config.json"
 
 # --- 全局变量声明 ---
 # 声明用于存储语言参数和国际化数据的全局变量
@@ -425,6 +427,95 @@ function print_banner() {
     esac
 }
 
+function get_xray_service_status() {
+    if ! command -v xray >/dev/null 2>&1 && [[ ! -x '/usr/local/bin/xray' ]]; then
+        echo 'not_installed'
+        return
+    fi
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl -q is-active xray >/dev/null 2>&1 && echo 'running' || echo 'stopped'
+        return
+    fi
+    if command -v pgrep >/dev/null 2>&1; then
+        pgrep -x xray >/dev/null 2>&1 && echo 'running' || echo 'stopped'
+        return
+    fi
+    echo 'unknown'
+}
+
+function get_script_update_status() {
+    local local_version remote_version cached_remote cache_file cache_time now
+    local_version="$(jq -r '.version // empty' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+    remote_version=''
+    cached_remote=''
+    cache_file="${SCRIPT_CONFIG_DIR}/.version_check"
+    if [[ -f "${cache_file}" ]]; then
+        cached_remote="$(<"${cache_file}")"
+        cache_time="$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)"
+        now="$(date +%s)"
+        if [[ -n "${cached_remote}" ]] && [[ $((now - cache_time)) -lt 600 ]]; then
+            remote_version="${cached_remote}"
+        fi
+    fi
+    if [[ -z "${remote_version}" ]]; then
+        if command -v curl >/dev/null 2>&1; then
+            remote_version="$(curl -fsSL --connect-timeout 2 --max-time 3 "${SCRIPT_CONFIG_GITHUB_URL}" 2>/dev/null | jq -r '.version // empty' 2>/dev/null)"
+        elif command -v wget >/dev/null 2>&1; then
+            remote_version="$(wget -qO- --timeout=3 "${SCRIPT_CONFIG_GITHUB_URL}" 2>/dev/null | jq -r '.version // empty' 2>/dev/null)"
+        fi
+        if [[ -n "${remote_version}" && -d "${SCRIPT_CONFIG_DIR}" ]]; then
+            echo "${remote_version}" >"${cache_file}"
+        elif [[ -n "${cached_remote}" ]]; then
+            remote_version="${cached_remote}"
+        fi
+    fi
+    if [[ -z "${remote_version}" ]]; then
+        echo 'unknown'
+    elif [[ "${local_version}" == "${remote_version}" ]]; then
+        echo 'latest'
+    else
+        echo 'updatable'
+    fi
+}
+
+function get_online_clients() {
+    [[ -f "${XRAY_CONFIG_PATH}" ]] || {
+        echo 'unknown'
+        return
+    }
+    local api_port
+    api_port="$(jq -r '[.inbounds[]? | select(.tag == "api") | .port] | first // empty' "${XRAY_CONFIG_PATH}" 2>/dev/null)"
+    [[ -z "${api_port}" ]] && {
+        echo 'unknown'
+        return
+    }
+    local emails
+    emails="$(jq -r '.inbounds[]? | .settings.clients[]? | .email // empty' "${XRAY_CONFIG_PATH}" 2>/dev/null | sort -u)"
+    [[ -z "${emails}" ]] && {
+        echo '0'
+        return
+    }
+    local total=0 queried=0 email response value status
+    while IFS= read -r email; do
+        [[ -z "${email}" ]] && continue
+        if command -v timeout >/dev/null 2>&1; then
+            response="$(timeout 3 xray api statsonline -server="127.0.0.1:${api_port}" -email "${email}" 2>&1)"
+        else
+            response="$(xray api statsonline -server="127.0.0.1:${api_port}" -email "${email}" 2>&1)"
+        fi
+        status=$?
+        if [[ ${status} -eq 0 ]]; then
+            value="$(echo "${response}" | jq -r '.stat.value // 0' 2>/dev/null)"
+            [[ "${value}" =~ ^[0-9]+$ ]] || value=0
+            total=$((total + value))
+            queried=$((queried + 1))
+        elif [[ "${response}" == *'not found'* ]]; then
+            queried=$((queried + 1))
+        fi
+    done <<<"${emails}"
+    [[ ${queried} -eq 0 ]] && echo 'unknown' || echo "${total}"
+}
+
 # =============================================================================
 # 函数名称: print_status
 # 功能描述: 打印当前脚本配置的状态信息，包括 Xray 版本、配置标签和 WARP 状态。
@@ -445,6 +536,18 @@ function print_status() {
     local not_configured=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.not_configured")
     local enabled=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.enabled")
     local disabled=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.disabled")
+    local running=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.running")
+    local stopped=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.stopped")
+    local up_to_date=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.up_to_date")
+    local updatable=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.updatable")
+    local unknown=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.unknown")
+
+    local XRAY_SERVICE_STATE="$(get_xray_service_status)"
+    local XRAY_SERVICE_STATUS="${XRAY_SERVICE_STATE}"
+    local SCRIPT_UPDATE_STATUS="$(get_script_update_status)"
+    local ONLINE_CLIENTS='0'
+    [[ "${XRAY_SERVICE_STATE}" == 'running' ]] && ONLINE_CLIENTS="$(get_online_clients)"
+    local SCRIPT_VERSION="$(echo "${SCRIPT_CONFIG}" | jq -r '.version // empty')"
 
     # 根据 Xray 版本是否存在，设置显示颜色和文本
     [[ ${XRAY_VERSION} ]] && XRAY_VERSION="${GREEN}${XRAY_VERSION}${NC}" || XRAY_VERSION="${RED}${not_installed}${NC}"
@@ -453,11 +556,32 @@ function print_status() {
     # 根据 WARP 状态 (1 或 0)，设置显示颜色和文本
     [[ ${WARP_STATUS} -eq 1 ]] && WARP_STATUS="${GREEN}${enabled}${NC}" || WARP_STATUS="${RED}${disabled}${NC}"
 
+    case "${XRAY_SERVICE_STATE}" in
+    running) XRAY_SERVICE_STATUS="${GREEN}${running}${NC}" ;;
+    not_installed) XRAY_SERVICE_STATUS="${RED}${not_installed}${NC}" ;;
+    *) XRAY_SERVICE_STATUS="${RED}${stopped}${NC}" ;;
+    esac
+
+    case "${SCRIPT_UPDATE_STATUS}" in
+    latest) SCRIPT_UPDATE_STATUS="${GREEN}${up_to_date}${NC}" ;;
+    updatable) SCRIPT_UPDATE_STATUS="${YELLOW}${updatable}${NC}" ;;
+    *) SCRIPT_UPDATE_STATUS="${YELLOW}${unknown}${NC}" ;;
+    esac
+
+    if [[ "${ONLINE_CLIENTS}" =~ ^[0-9]+$ ]]; then
+        [[ ${ONLINE_CLIENTS} -gt 0 ]] && ONLINE_CLIENTS="${GREEN}${ONLINE_CLIENTS}${NC}" || ONLINE_CLIENTS="${YELLOW}${ONLINE_CLIENTS}${NC}"
+    else
+        ONLINE_CLIENTS="${YELLOW}${unknown}${NC}"
+    fi
+
     # 打印状态信息
     echo -e "------------------------------------------------------"
-    echo -e "Xray       : ${XRAY_VERSION}"
-    echo -e "CONFIG     : ${CONFIG_TAG}"
-    echo -e "WARP Proxy : ${WARP_STATUS}"
+    echo -e "Xray        : ${XRAY_VERSION}"
+    echo -e "Xray Status : ${XRAY_SERVICE_STATUS}"
+    echo -e "Script      : ${SCRIPT_VERSION} (${SCRIPT_UPDATE_STATUS})"
+    echo -e "Clients     : ${ONLINE_CLIENTS}"
+    echo -e "CONFIG      : ${CONFIG_TAG}"
+    echo -e "WARP Proxy  : ${WARP_STATUS}"
     echo -e "------------------------------------------------------"
     echo
 }
