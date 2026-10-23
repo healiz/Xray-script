@@ -43,6 +43,7 @@ readonly CONFIG_DIR="${PROJECT_ROOT}/config"                   # 配置文件目
 readonly GENERATE_PATH="${CUR_DIR}/generate.sh"                # 项目中的 generate.sh 脚本路径
 readonly SCRIPT_CONFIG_PATH="${SCRIPT_CONFIG_DIR}/config.json" # 脚本主要配置文件路径
 readonly SCRIPT_CONFIG_GITHUB_URL="https://raw.githubusercontent.com/healiz/Xray-script/main/config.json"
+readonly XRAY_CORE_GITHUB_API="https://api.github.com/repos/XTLS/Xray-core/releases/latest"
 readonly XRAY_CONFIG_PATH="/usr/local/etc/xray/config.json"
 
 # --- 全局变量声明 ---
@@ -478,6 +479,34 @@ function get_script_update_status() {
     fi
 }
 
+function get_xray_latest_version() {
+    local latest_version cached_version cache_file cache_time now
+    latest_version=''
+    cached_version=''
+    cache_file="${SCRIPT_CONFIG_DIR}/.xray_core_version_check"
+    if [[ -f "${cache_file}" ]]; then
+        cached_version="$(<"${cache_file}")"
+        cache_time="$(stat -c %Y "${cache_file}" 2>/dev/null || echo 0)"
+        now="$(date +%s)"
+        if [[ -n "${cached_version}" ]] && [[ $((now - cache_time)) -lt 3600 ]]; then
+            latest_version="${cached_version}"
+        fi
+    fi
+    if [[ -z "${latest_version}" ]]; then
+        if command -v curl >/dev/null 2>&1; then
+            latest_version="$(curl -fsSL --connect-timeout 2 --max-time 3 -H 'Accept: application/vnd.github+json' "${XRAY_CORE_GITHUB_API}" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null)"
+        elif command -v wget >/dev/null 2>&1; then
+            latest_version="$(wget -qO- --timeout=3 --header='Accept: application/vnd.github+json' "${XRAY_CORE_GITHUB_API}" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null)"
+        fi
+        if [[ -n "${latest_version}" && -d "${SCRIPT_CONFIG_DIR}" ]]; then
+            echo "${latest_version}" >"${cache_file}"
+        elif [[ -n "${cached_version}" ]]; then
+            latest_version="${cached_version}"
+        fi
+    fi
+    [[ -n "${latest_version}" ]] && echo "${latest_version}"
+}
+
 function get_online_clients() {
     [[ -f "${XRAY_CONFIG_PATH}" ]] || {
         echo 'unknown'
@@ -548,6 +577,17 @@ function print_status() {
     local ONLINE_CLIENTS='0'
     [[ "${XRAY_SERVICE_STATE}" == 'running' ]] && ONLINE_CLIENTS="$(get_online_clients)"
     local SCRIPT_VERSION="$(echo "${SCRIPT_CONFIG}" | jq -r '.version // empty')"
+    local XRAY_LATEST_VERSION="$(get_xray_latest_version)"
+
+    if [[ -z "${XRAY_LATEST_VERSION}" ]]; then
+        XRAY_LATEST_VERSION="${YELLOW}${unknown}${NC}"
+    elif [[ -z "${XRAY_VERSION}" || "${XRAY_VERSION}" == 'null' ]]; then
+        XRAY_LATEST_VERSION="${GREEN}${XRAY_LATEST_VERSION}${NC}"
+    elif [[ "${XRAY_VERSION}" == "${XRAY_LATEST_VERSION}" ]]; then
+        XRAY_LATEST_VERSION="${GREEN}${XRAY_LATEST_VERSION}${NC} (${GREEN}${up_to_date}${NC})"
+    else
+        XRAY_LATEST_VERSION="${YELLOW}${XRAY_LATEST_VERSION}${NC} (${YELLOW}${updatable}${NC})"
+    fi
 
     # 根据 Xray 版本是否存在，设置显示颜色和文本
     [[ ${XRAY_VERSION} ]] && XRAY_VERSION="${GREEN}${XRAY_VERSION}${NC}" || XRAY_VERSION="${RED}${not_installed}${NC}"
@@ -577,6 +617,7 @@ function print_status() {
     # 打印状态信息
     echo -e "------------------------------------------------------"
     echo -e "Xray        : ${XRAY_VERSION}"
+    echo -e "Xray Latest : ${XRAY_LATEST_VERSION}"
     echo -e "Xray Status : ${XRAY_SERVICE_STATUS}"
     echo -e "Script      : ${SCRIPT_VERSION} (${SCRIPT_UPDATE_STATUS})"
     echo -e "Clients     : ${ONLINE_CLIENTS}"
