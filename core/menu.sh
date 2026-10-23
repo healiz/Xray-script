@@ -110,15 +110,6 @@ function menu_language() {
 # 返回值: 无 (直接打印到标准错误输出 >&2)
 # =============================================================================
 function menu_index() {
-    # 从配置文件中读取脚本版本号
-    local version=$(jq -r '.version' "${SCRIPT_CONFIG_PATH}")
-
-    # 打印主菜单标题和版本信息
-    echo -e "--------------- Xray-script ------------------"
-    echo -e "Version      : ${GREEN}${version}${NC}"
-    # 从 i18n 数据中读取描述信息
-    echo -e "Description  : $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.description")"
-
     # 打印安装选项部分
     echo -e "------------------ $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.installation") ------------------"
     echo -e "${GREEN}1.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.option1")"
@@ -547,7 +538,7 @@ function get_online_clients() {
 
 # =============================================================================
 # 函数名称: print_status
-# 功能描述: 打印当前脚本配置的状态信息，包括 Xray 版本、配置标签和 WARP 状态。
+# 功能描述: 打印当前脚本配置的状态信息，包括 Xray 版本和 WARP 状态。
 # 参数: 无 (直接使用全局变量 SCRIPT_CONFIG_PATH 和 I18N_DATA)
 # 返回值: 无 (直接打印到标准错误输出 >&2)
 # =============================================================================
@@ -555,14 +546,12 @@ function print_status() {
     # 读取脚本配置文件的完整 JSON 内容
     local SCRIPT_CONFIG=$(jq '.' "${SCRIPT_CONFIG_PATH}")
 
-    # 从配置中提取 Xray 版本、配置标签和 WARP 状态
+    # 从配置中提取 Xray 版本和 WARP 状态
     local XRAY_VERSION=$(echo "${SCRIPT_CONFIG}" | jq -r '.xray.version')
-    local CONFIG_TAG=$(echo "${SCRIPT_CONFIG}" | jq -r '.xray.tag')
     local WARP_STATUS=$(echo "${SCRIPT_CONFIG}" | jq -r '.xray.warp')
 
     # 从 i18n 数据中读取状态描述文本
     local not_installed=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.not_installed")
-    local not_configured=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.not_configured")
     local enabled=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.enabled")
     local disabled=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.disabled")
     local running=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.running")
@@ -591,8 +580,6 @@ function print_status() {
 
     # 根据 Xray 版本是否存在，设置显示颜色和文本
     [[ ${XRAY_VERSION} ]] && XRAY_VERSION="${GREEN}${XRAY_VERSION}${NC}" || XRAY_VERSION="${RED}${not_installed}${NC}"
-    # 根据配置标签是否存在，设置显示颜色和文本
-    [[ ${CONFIG_TAG} ]] && CONFIG_TAG="${GREEN}${CONFIG_TAG}${NC}" || CONFIG_TAG="${RED}${not_configured}${NC}"
     # 根据 WARP 状态 (1 或 0)，设置显示颜色和文本
     [[ ${WARP_STATUS} -eq 1 ]] && WARP_STATUS="${GREEN}${enabled}${NC}" || WARP_STATUS="${RED}${disabled}${NC}"
 
@@ -621,7 +608,6 @@ function print_status() {
     echo -e "Xray Status : ${XRAY_SERVICE_STATUS}"
     echo -e "Script      : ${SCRIPT_VERSION} (${SCRIPT_UPDATE_STATUS})"
     echo -e "Clients     : ${ONLINE_CLIENTS}"
-    echo -e "CONFIG      : ${CONFIG_TAG}"
     echo -e "WARP Proxy  : ${WARP_STATUS}"
     echo -e "------------------------------------------------------"
     echo

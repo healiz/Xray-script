@@ -20,7 +20,6 @@
     "status": {
       "default": "默认",
       "not_installed": "未安装",
-      "not_configured": "未配置",
       "enabled": "已启用",
       "disabled": "未启动",
       "running": "运行中",
@@ -30,7 +29,6 @@
       "unknown": "未知"
     },
     "index": {
-      "description": "Xray 管理脚本",
       "installation": "装载管理",
       "operation": "操作管理",
       "configuration": "配置管理",
