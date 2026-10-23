@@ -1501,7 +1501,7 @@ function handler_update_xray() {
     fi
 
     # 从 GitHub API 获取最新的稳定版本
-    local latest_version="$(curl -fsSL https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r '.tag_name')"
+    local latest_version="$(curl -fsSL --connect-timeout 5 --max-time 20 -H 'Accept: application/vnd.github+json' -H 'User-Agent: Xray-script' https://api.github.com/repos/XTLS/Xray-core/releases/latest 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null)"
     if [[ -z "${latest_version}" || "${latest_version}" == "null" ]]; then
         echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.fetch_failed")" >&2
         return 1
@@ -1512,7 +1512,7 @@ function handler_update_xray() {
     echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.latest_version"): ${latest_version}" >&2
 
     # 比较当前版本和最新版本
-    if [[ "${current_version}" == "${latest_version}" ]]; then
+    if [[ "${current_version#v}" == "${latest_version#v}" ]]; then
         echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.already_latest")" >&2
         return 0
     fi
@@ -1527,7 +1527,13 @@ function handler_update_xray() {
 
     # 执行更新
     echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.info')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.updating")" >&2
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root --version "${latest_version}"
+    local install_script=''
+    install_script="$(curl -fsSL --connect-timeout 5 --max-time 30 https://github.com/XTLS/Xray-install/raw/main/install-release.sh 2>/dev/null)" || install_script=''
+    if [[ -z "${install_script}" ]]; then
+        echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.xray_update.failed")" >&2
+        return 1
+    fi
+    bash -c "${install_script}" @ install --version "${latest_version}"
 
     # 检查更新是否成功
     if [[ $? -eq 0 ]]; then
