@@ -69,11 +69,15 @@
    6. 自定义域名不能与 `domain`、`cdn` 或其他自定义站点域名重复；切换 CA 厂商与“强制续签所有证书”都会覆盖自定义站点域名。
    7. 自定义站点为“纯反代站点”，不包含 Xray 的 `xhttp/grpc` 路径，也不接入 Cloudreve 管理逻辑；代理层不会额外注入 `Content-Security-Policy`，由上游应用自行控制 CSP。
 
-## 分享链接
+## 分享链接与 Clash 订阅
 
 基于[VMessAEAD / VLESS 分享链接标准提案](https://github.com/XTLS/Xray-core/discussions/716)与[v2rayN](https://github.com/2dust/v2rayN)实现，如果其他客户端无法正常使用，请自行根据分享链接进行修改。
 
 SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请自行在客户端修改。
+
+菜单 7 会同时生成 Clash/Mihomo 订阅文件 `~/.xray-script/clash.yaml`。订阅文件按当前 Xray 配置生成，包含 `proxies`、`PROXY` 选择组和 `MATCH,PROXY` 规则，支持 Vision/Reality、XHTTP/Reality、XHTTP+TLS 以及 SNI 上下行分离（`download-settings`）。
+
+Mihomo 不支持 VLESS mKCP，也不支持 Trojan 的 XHTTP 传输，这两种模式会提示暂不支持，但仍会正常输出 VLESS/Trojan 分享链接与二维码。
 
 ## 如何使用
 
@@ -144,7 +148,7 @@ WARP Proxy : 已启动
 5. 停止
 6. 重启
 ----------------- 配置管理 ----------------
-7. 分享链接与二维码
+7. 分享链接、二维码与 Clash 订阅
 8. 信息统计
 9. 管理配置
 -------------------------------------------

@@ -38,7 +38,7 @@
       "option4": "Start",
       "option5": "Stop",
       "option6": "Restart",
-      "option7": "Share Link & QR Code",
+      "option7": "Share Link, QR Code & Clash Subscription",
       "option8": "Traffic Statistics",
       "option9": "Manage Configuration",
       "option10": "Update Xray Core",
@@ -217,7 +217,10 @@
     "client": "Client Configuration",
     "extra": "XHTTP Extra Config",
     "link": "Share Link",
-    "qr": "QR Code"
+    "qr": "QR Code",
+    "clash": "Clash Subscription",
+    "clash_file": "Subscription File",
+    "clash_unsupported": "Clash subscription is not supported for this mode (Mihomo does not support VLESS mKCP or Trojan XHTTP)."
   },
   "check": {
     "ip": {

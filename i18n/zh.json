@@ -38,7 +38,7 @@
       "option4": "启动",
       "option5": "停止",
       "option6": "重启",
-      "option7": "分享链接与二维码",
+      "option7": "分享链接、二维码与 Clash 订阅",
       "option8": "信息统计",
       "option9": "管理配置",
       "option10": "更新 Xray 核心",
@@ -217,7 +217,10 @@
     "client": "客户端配置",
     "extra": "XHTTP 扩展配置(extra)",
     "link": "分享链接",
-    "qr": "二维码"
+    "qr": "二维码",
+    "clash": "Clash 订阅",
+    "clash_file": "订阅文件",
+    "clash_unsupported": "当前模式暂不支持生成 Clash 订阅（Mihomo 不支持 VLESS mKCP 或 Trojan XHTTP）。"
   },
   "check": {
     "ip": {

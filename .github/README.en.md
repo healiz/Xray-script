@@ -70,11 +70,15 @@
    6. A custom site domain must not duplicate `domain`, `cdn`, or another custom site domain; CA switching and "force renew all certificates" also cover custom site domains.
    7. Custom sites are "pure reverse proxy sites". They do not include Xray `xhttp/grpc` paths and are not managed by the Cloudreve integration; the proxy layer does not inject an extra `Content-Security-Policy`, so CSP should be controlled by the upstream application.
 
-## Share Links
+## Share Links & Clash Subscription
 
 Implemented based on [VMessAEAD / VLESS share link proposal](https://github.com/XTLS/Xray-core/discussions/716) and [v2rayN](https://github.com/2dust/v2rayN). If other clients do not work, adjust based on the generated share link manually.
 
 In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, modify it in your client.
+
+Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and contains `proxies`, a `PROXY` select group, and a `MATCH,PROXY` rule. Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
+
+Mihomo does not support VLESS mKCP or Trojan over XHTTP. Those modes show an unsupported notice, while the VLESS/Trojan share link and QR code are still printed normally.
 
 ## How to Use
 
@@ -145,7 +149,7 @@ WARP Proxy : Running
 5. Stop
 6. Restart
 ---------------- Configuration -------------
-7. Share links and QR codes
+7. Share links, QR codes and Clash subscription
 8. Statistics
 9. Manage configuration
 -------------------------------------------

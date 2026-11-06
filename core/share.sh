@@ -66,6 +66,9 @@ declare SHARE_LINK_COMPONENT_REALITY # Reality 安全传输的参数部分
 declare SHARE_LINK_COMPONENT_XHTTP   # XHTTP 网络传输的参数部分
 declare SHARE_LINK_COMPONENT_FLOW    # Flow 控制参数部分
 declare SHARE_LINK_COMPONENT_EXTRA   # 额外参数 (如 downloadSettings) 部分
+declare CLASH_PROXY                  # 当前节点的 Clash 代理 YAML 片段
+declare -a CLASH_PROXIES             # Clash 订阅中的代理节点 YAML 片段
+declare -a CLASH_PROXY_NAMES         # Clash 订阅中的代理节点名称
 
 # =============================================================================
 # 函数名称: load_i18n
@@ -478,6 +481,193 @@ function get_sni_reality_down_share_link() {
 }
 
 # =============================================================================
+# 函数名称: yaml_quote
+# 功能描述: 将字符串转换为 YAML 双引号标量，避免特殊字符破坏配置。
+# 参数: $1: 需要转换的字符串
+# 返回值: 无 (直接打印转换后的字符串)
+# =============================================================================
+function yaml_quote() {
+    jq -Rn --arg value "${1:-}" '$value'
+}
+
+# =============================================================================
+# 函数名称: get_clash_proxy
+# 功能描述: 根据当前 CLIENT_CONFIG 生成 Clash/Mihomo 代理节点 YAML 片段。
+#           不支持 mKCP，以及 Mihomo 不支持的 Trojan XHTTP。
+# 参数: 无 (直接使用全局变量 CLIENT_CONFIG 和 XHTTP_EXTRA)
+# 返回值: 无 (直接修改全局变量 CLASH_PROXY)
+# =============================================================================
+function get_clash_proxy() {
+    local tag="${CLIENT_CONFIG[tag]}"
+    local protocol="${CLIENT_CONFIG[protocol]}"
+    local server="${CLIENT_CONFIG[remote_host]}"
+    local port="${CLIENT_CONFIG[port]}"
+    local network="${CLIENT_CONFIG[type]}"
+    local security="${CLIENT_CONFIG[security]}"
+    local flow="${CLIENT_CONFIG[flow]}"
+    local sni="${CLIENT_CONFIG[server_name]}"
+    local path="${CLIENT_CONFIG[path]}"
+    local public_key="${CLIENT_CONFIG[public_key]}"
+    local short_id="${CLIENT_CONFIG[short_id]}"
+    local uuid="${CLIENT_CONFIG[uuid]}"
+    local password="${CLIENT_CONFIG[password]}"
+    local lines=''
+
+    CLASH_PROXY=''
+
+    # Mihomo 不支持 VLESS mKCP，Trojan 也不支持 XHTTP
+    [[ "${network}" == 'kcp' ]] && return
+    [[ "${protocol}" == 'trojan' && "${network}" == 'xhttp' ]] && return
+    [[ "${protocol}" == 'vless' || "${protocol}" == 'trojan' ]] || return
+    [[ -n "${server}" && -n "${port}" ]] || return
+
+    # Xray 的 raw/tcp 在 Clash 中统一为 tcp
+    case "${network}" in
+    raw | tcp | '') network='tcp' ;;
+    xhttp) network='xhttp' ;;
+    *) return ;;
+    esac
+
+    lines+="- name: $(yaml_quote "${tag}")"$'\n'
+    lines+="  type: ${protocol}"$'\n'
+    lines+="  server: $(yaml_quote "${server}")"$'\n'
+    lines+="  port: ${port}"$'\n'
+    if [[ "${protocol}" == 'vless' ]]; then
+        lines+="  uuid: $(yaml_quote "${uuid}")"$'\n'
+        lines+="  encryption: \"\""$'\n'
+    else
+        lines+="  password: $(yaml_quote "${password}")"$'\n'
+    fi
+    lines+="  udp: true"$'\n'
+    lines+="  network: ${network}"$'\n'
+
+    if [[ "${security}" == 'tls' || "${security}" == 'reality' ]]; then
+        lines+="  tls: true"$'\n'
+        [[ -n "${sni}" ]] && lines+="  servername: $(yaml_quote "${sni}")"$'\n'
+        lines+="  client-fingerprint: chrome"$'\n'
+    fi
+
+    if [[ "${security}" == 'reality' && -n "${public_key}" ]]; then
+        lines+="  reality-opts:"$'\n'
+        lines+="    public-key: $(yaml_quote "${public_key}")"$'\n'
+        [[ -n "${short_id}" ]] && lines+="    short-id: $(yaml_quote "${short_id}")"$'\n'
+    fi
+
+    if [[ "${protocol}" == 'vless' && -n "${flow}" ]]; then
+        lines+="  flow: $(yaml_quote "${flow}")"$'\n'
+    fi
+
+    if [[ "${network}" == 'xhttp' ]]; then
+        local xhttp_path="${path}"
+        [[ "${xhttp_path}" != /* ]] && xhttp_path="/${xhttp_path}"
+        lines+="  xhttp-opts:"$'\n'
+        lines+="    path: $(yaml_quote "${xhttp_path}")"$'\n'
+        if [[ "${security}" == 'tls' && -n "${sni}" ]]; then
+            lines+="    host: $(yaml_quote "${sni}")"$'\n'
+        fi
+        lines+="    mode: auto"$'\n'
+
+        # 处理 XHTTP 的 downloadSettings（如下行 CDN / Reality）
+        if [[ -n "${XHTTP_EXTRA}" ]]; then
+            local download_server download_port download_security download_sni
+            local download_public_key download_short_id download_path download_host
+            download_server="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.address // empty')"
+            download_port="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.port // empty')"
+            download_security="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.security // empty' | tr '[:upper:]' '[:lower:]')"
+            download_sni="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.tlsSettings.serverName // .downloadSettings.realitySettings.serverName // empty')"
+            download_public_key="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.realitySettings.publicKey // empty')"
+            download_short_id="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.realitySettings.shortId // empty')"
+            download_path="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.xhttpSettings.path // empty')"
+            download_host="$(echo "${XHTTP_EXTRA}" | jq -r '.downloadSettings.xhttpSettings.host // empty')"
+            [[ -z "${download_host}" ]] && download_host="${download_sni}"
+
+            if [[ -n "${download_server}" ]]; then
+                lines+="    download-settings:"$'\n'
+                lines+="      server: $(yaml_quote "${download_server}")"$'\n'
+                [[ -n "${download_port}" ]] && lines+="      port: ${download_port}"$'\n'
+
+                # Mihomo 不识别 downloadSettings.security，依靠 tls / reality-opts 判断
+                if [[ "${download_security}" == 'reality' || -n "${download_public_key}" ]]; then
+                    lines+="      tls: true"$'\n'
+                    [[ -n "${download_sni}" ]] && lines+="      servername: $(yaml_quote "${download_sni}")"$'\n'
+                    lines+="      client-fingerprint: chrome"$'\n'
+                    lines+="      reality-opts:"$'\n'
+                    lines+="        public-key: $(yaml_quote "${download_public_key}")"$'\n'
+                    [[ -n "${download_short_id}" ]] && lines+="        short-id: $(yaml_quote "${download_short_id}")"$'\n'
+                else
+                    lines+="      tls: true"$'\n'
+                    [[ -n "${download_sni}" ]] && lines+="      servername: $(yaml_quote "${download_sni}")"$'\n'
+                    lines+="      client-fingerprint: chrome"$'\n'
+                    # 外层为 Reality 时，必须清空下行继承的 Reality 配置
+                    if [[ "${security}" == 'reality' ]]; then
+                        lines+='      reality-opts: { public-key: "" }'$'\n'
+                    fi
+                fi
+
+                lines+="      xhttp-opts:"$'\n'
+                [[ -n "${download_path}" ]] && lines+="        path: $(yaml_quote "${download_path}")"$'\n'
+                [[ -n "${download_host}" ]] && lines+="        host: $(yaml_quote "${download_host}")"$'\n'
+                lines+="        mode: auto"$'\n'
+            fi
+        fi
+    fi
+
+    CLASH_PROXY="${lines}"
+}
+
+# =============================================================================
+# 函数名称: write_clash_config
+# 功能描述: 将已收集的代理节点写入 Clash/Mihomo 订阅文件。
+# 参数: 无 (直接使用全局变量 CLASH_PROXIES 和 CLASH_PROXY_NAMES)
+# 返回值: 无 (打印订阅文件路径)
+# =============================================================================
+function write_clash_config() {
+    local clash_file="${SCRIPT_CONFIG_DIR}/clash.yaml"
+    mkdir -p "${SCRIPT_CONFIG_DIR}" || return 1
+
+    {
+        echo 'mixed-port: 7890'
+        echo 'allow-lan: false'
+        echo 'mode: rule'
+        echo 'log-level: info'
+        echo 'proxies:'
+        local proxy
+        for proxy in "${CLASH_PROXIES[@]}"; do
+            printf '%s' "${proxy}"
+        done
+        echo 'proxy-groups:'
+        echo '  - name: "PROXY"'
+        echo '    type: select'
+        echo '    proxies:'
+        local name
+        for name in "${CLASH_PROXY_NAMES[@]}"; do
+            printf '      - %s\n' "$(yaml_quote "${name}")"
+        done
+        echo 'rules:'
+        echo '  - MATCH,PROXY'
+    } >"${clash_file}"
+
+    printf '%s\n' "${clash_file}"
+}
+
+# =============================================================================
+# 函数名称: show_clash_config
+# 功能描述: 显示 Clash/Mihomo 订阅文件路径，或提示当前模式不支持。
+# 参数: 无
+# 返回值: 无
+# =============================================================================
+function show_clash_config() {
+    echo -e "------------------ $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash") ------------------"
+    if [[ ${#CLASH_PROXIES[@]} -eq 0 ]]; then
+        echo -e "$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_unsupported")"
+    else
+        local clash_file="$(write_clash_config)"
+        echo -e "$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_file"): ${clash_file}"
+    fi
+    echo -e "------------------------------------------------------"
+}
+
+# =============================================================================
 # 函数名称: show_config
 # 功能描述: 打印完整的客户端配置信息、额外配置 (如果有的话)、
 #           最终的分享链接以及对应的二维码。
@@ -487,6 +677,13 @@ function get_sni_reality_down_share_link() {
 function show_config() {
     # 在分享链接末尾追加标签作为锚点 (例如 #my_tag)
     SHARE_LINK="${SHARE_LINK}#${CLIENT_CONFIG[tag]}"
+
+    # 收集当前节点的 Clash 配置
+    get_clash_proxy
+    if [[ -n "${CLASH_PROXY}" ]]; then
+        CLASH_PROXIES+=("${CLASH_PROXY}")
+        CLASH_PROXY_NAMES+=("${CLIENT_CONFIG[tag]}")
+    fi
 
     # 显示客户端配置信息
     show_client_config
@@ -623,6 +820,9 @@ function main() {
 
     # 显示最终的配置和链接信息 (重定向到标准错误输出 >&2，虽然不太常见)
     show_config >&2
+
+    # 生成并显示 Clash/Mihomo 订阅文件
+    show_clash_config >&2
 }
 
 # --- 脚本执行入口 ---
