@@ -78,6 +78,10 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
 
 Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and contains `proxies`, a `PROXY` select group, and a `MATCH,PROXY` rule. Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
 
+> Reality proxies include `reality-opts.support-x25519mlkem768: true`. Xray-core v26.9.8 and later require clients to send the X25519MLKEM768 key share during the REALITY handshake; otherwise the connection fails with `REALITY authentication failed`. Use mihomo v1.19.30 or later (latest Clash Verge, FlClash, or Clash Meta for Android).
+>
+> When importing into Clash Meta for Android, the imported file must be named `config.yaml` (the core always reads that name), not `clash.yaml`.
+
 Mihomo does not support VLESS mKCP or Trojan over XHTTP. Those modes show an unsupported notice, while the VLESS/Trojan share link and QR code are still printed normally.
 
 ## How to Use

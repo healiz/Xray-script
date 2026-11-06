@@ -77,6 +77,10 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
 
 菜单 7 会同时生成 Clash/Mihomo 订阅文件 `~/.xray-script/clash.yaml`。订阅文件按当前 Xray 配置生成，包含 `proxies`、`PROXY` 选择组和 `MATCH,PROXY` 规则，支持 Vision/Reality、XHTTP/Reality、XHTTP+TLS 以及 SNI 上下行分离（`download-settings`）。
 
+> Reality 节点会自动写入 `reality-opts.support-x25519mlkem768: true`。Xray-core 自 v26.9.8 起要求客户端在 REALITY 握手时携带 X25519MLKEM768 密钥交换，否则会报 `REALITY authentication failed`。请使用 mihomo v1.19.30 及以上内核（如最新版 Clash Verge、FlClash、Clash Meta for Android）。
+>
+> 导入 Clash Meta for Android 时，配置内的文件名必须是 `config.yaml`（内核固定读取该文件名），不是 `clash.yaml`。
+
 Mihomo 不支持 VLESS mKCP，也不支持 Trojan 的 XHTTP 传输，这两种模式会提示暂不支持，但仍会正常输出 VLESS/Trojan 分享链接与二维码。
 
 ## 如何使用

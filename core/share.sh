@@ -551,6 +551,8 @@ function get_clash_proxy() {
         lines+="  reality-opts:"$'\n'
         lines+="    public-key: $(yaml_quote "${public_key}")"$'\n'
         [[ -n "${short_id}" ]] && lines+="    short-id: $(yaml_quote "${short_id}")"$'\n'
+        # Xray-core >= 26.9.8 的 REALITY 服务端要求客户端携带 X25519MLKEM768 密钥交换
+        lines+="    support-x25519mlkem768: true"$'\n'
     fi
 
     if [[ "${protocol}" == 'vless' && -n "${flow}" ]]; then
@@ -594,6 +596,7 @@ function get_clash_proxy() {
                     lines+="      reality-opts:"$'\n'
                     lines+="        public-key: $(yaml_quote "${download_public_key}")"$'\n'
                     [[ -n "${download_short_id}" ]] && lines+="        short-id: $(yaml_quote "${download_short_id}")"$'\n'
+                    lines+="        support-x25519mlkem768: true"$'\n'
                 else
                     lines+="      tls: true"$'\n'
                     [[ -n "${download_sni}" ]] && lines+="      servername: $(yaml_quote "${download_sni}")"$'\n'

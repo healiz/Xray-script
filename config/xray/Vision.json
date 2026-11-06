@@ -82,6 +82,7 @@
           "xver": 0,
           "serverNames": [],
           "privateKey": "xray x25519 Private key",
+          "minClientVer": "1.8.2",
           "shortIds": [
             "",
             "01",
