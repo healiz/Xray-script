@@ -76,7 +76,7 @@ Implemented based on [VMessAEAD / VLESS share link proposal](https://github.com/
 
 In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, modify it in your client.
 
-Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and contains `proxies`, a `PROXY` select group, and a `MATCH,PROXY` rule. Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
+Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and defaults to global mode (`mode: global`), containing `proxies`, a `PROXY` select group, and a `MATCH,PROXY` rule (traffic still goes through `PROXY` if you switch back to rule mode). Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
 
 > Reality proxies include `reality-opts.support-x25519mlkem768: true`. Xray-core v26.9.8 and later require clients to send the X25519MLKEM768 key share during the REALITY handshake; otherwise the connection fails with `REALITY authentication failed`. Use mihomo v1.19.30 or later (latest Clash Verge, FlClash, or Clash Meta for Android).
 >

@@ -631,7 +631,7 @@ function write_clash_config() {
     {
         echo 'mixed-port: 7890'
         echo 'allow-lan: false'
-        echo 'mode: rule'
+        echo 'mode: global'
         echo 'log-level: info'
         echo 'proxies:'
         local proxy
