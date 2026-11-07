@@ -1617,6 +1617,67 @@ function handler_restart() {
 }
 
 # =============================================================================
+# 函数名称: handler_clash_split
+# 功能描述: 设置 Clash/Mihomo 订阅的分流方式。
+#           1. 读取参数 split/proxy，未提供时交互式询问。
+#           2. 将结果写入脚本配置的 .clash.split 字段。
+#           3. 重新调用 share.sh 生成 clash.yaml。
+# 参数:
+#   $1: split_mode - "split" (国内直连) 或 "proxy" (全部代理)，可选
+# 返回值: 无
+# =============================================================================
+function handler_clash_split() {
+    local split_mode="${1:-}"
+    local input=''
+
+    # 未指定参数时，交互式询问分流方式，默认国内直连
+    if [[ -z "${split_mode}" ]]; then
+        while true; do
+            exec_read 'clash-split'
+            input="${CONFIG_DATA['clash-split'],,}"
+            case "${input}" in
+            '' | 1 | split | direct)
+                split_mode='split'
+                break
+                ;;
+            2 | proxy | global)
+                split_mode='proxy'
+                break
+                ;;
+            *)
+                echo -e "${RED}[$(echo "$I18N_DATA" | jq -r '.title.error')] ${NC}$(echo "$I18N_DATA" | jq -r '.handler.clash_split.invalid')" >&2
+                ;;
+            esac
+        done
+    fi
+
+    # 归一化外部传入的参数
+    case "${split_mode,,}" in
+    split | 1 | direct) split_mode='split' ;;
+    proxy | 2 | global) split_mode='proxy' ;;
+    *) _error "invalid clash split mode: ${split_mode}" ;;
+    esac
+
+    SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg split "${split_mode}" '.clash.split = $split')"
+    persist_script_config
+
+    # Xray 已安装时立即重新生成 clash.yaml
+    if [[ -f "${XRAY_CONFIG_PATH}" ]]; then
+        bash "${SHARE_PATH}" >/dev/null 2>&1 || true
+    fi
+
+    local mode_text=''
+    if [[ "${split_mode}" == 'split' ]]; then
+        mode_text="$(echo "$I18N_DATA" | jq -r '.handler.clash_split.split')"
+    else
+        mode_text="$(echo "$I18N_DATA" | jq -r '.handler.clash_split.proxy')"
+    fi
+    echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.tip')] ${NC}$(echo "$I18N_DATA" | jq -r '.handler.clash_split.saved'): ${mode_text}" >&2
+    echo -e "  ${SCRIPT_CONFIG_DIR}/clash.yaml" >&2
+    echo -e "${YELLOW}[$(echo "$I18N_DATA" | jq -r '.title.tip')] ${NC}$(echo "$I18N_DATA" | jq -r '.handler.clash_split.reimport')" >&2
+}
+
+# =============================================================================
 # 函数名称: handler_share
 # 功能描述: 调用 share.sh 脚本显示分享链接。
 # 参数: 无
@@ -2247,6 +2308,7 @@ function main() {
     --ca-server) handler_ca_server "$1" ;;
     --custom-sites) handler_custom_sites "$1" ;;
     --share) handler_share ;;                   # 显示分享链接
+    --clash-split) handler_clash_split "$1" ;;  # 设置 Clash 分流方式
     --nginx-cron) handler_nginx_cron ;;         # 管理 Nginx Cron
     --geodata-cron) handler_geodata_cron ;;     # 管理 GeoData Cron
     --warp) handler_warp ;;                     # 管理 WARP

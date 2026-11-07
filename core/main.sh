@@ -341,6 +341,18 @@ function processes_routing() {
     exec_handler '--restart' # 重启 Xray 服务
 }
 
+function processes_clash_split() {
+    # 显示 Clash 分流设置菜单
+    exec_menu '--clash-split'
+    # 获取菜单选择的退出码 (代表用户选择)
+    local choose=$(echo $?)
+    case ${choose} in
+    1) exec_handler '--clash-split' 'split' ;; # 选择 1：国内直连
+    2) exec_handler '--clash-split' 'proxy' ;; # 选择 2：全部代理
+    *) return 0 ;;
+    esac
+}
+
 function processes_custom_sites() {
     exec_menu '--custom-sites'
     local choose=$(echo $?)
@@ -435,6 +447,7 @@ function processes_config() {
     4) exec_handler '--change-port' ;;  # 选择 4：修改 Xray 端口
     5) exec_handler '--geodata-cron' ;; # 选择 5：配置 GeoData Cron 任务
     6) processes_language ;;            # 选择 6：设置语言
+    7) processes_clash_split ;;         # 选择 7：设置 Clash 分流方式
     *) exit 0 ;;                        # 其他情况：退出脚本
     esac
 }

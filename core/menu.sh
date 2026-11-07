@@ -287,6 +287,8 @@ function menu_config() {
     echo -e "${GREEN}5.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.option5")"
     # 打印选项 6
     echo -e "${GREEN}6.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.option6")"
+    # 打印选项 7
+    echo -e "${GREEN}7.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.option7")"
 
     # 打印分隔线
     echo -e "------------------------------------------------------"
@@ -300,7 +302,29 @@ function menu_config() {
     echo -e "4. $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.info4")"
     # 打印选项 5 的说明信息
     echo -e "5. $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.info5")"
+    # 打印选项 7 的说明信息
+    echo -e "7. $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.config_management.info6")"
     # 打印分隔线
+    echo -e "------------------------------------------------------"
+}
+
+# =============================================================================
+# 函数名称: menu_clash_split
+# 功能描述: 显示 Clash/Mihomo 分流设置菜单。
+# 参数: 无 (直接使用全局变量 I18N_DATA)
+# 返回值: 无 (直接打印到标准错误输出 >&2)
+# =============================================================================
+function menu_clash_split() {
+    echo -e "------------------ $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_split.title") ------------------"
+    # 打印选项 1 (默认)
+    echo -e "${GREEN}1.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_split.option1")(${GREEN}$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.status.default")${NC})"
+    # 打印选项 2
+    echo -e "${GREEN}2.${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_split.option2")"
+
+    # 打印分隔线
+    echo -e "------------------------------------------------------"
+    echo -e "1. $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_split.info1")"
+    echo -e "2. $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.clash_split.info2")"
     echo -e "------------------------------------------------------"
 }
 
@@ -675,6 +699,7 @@ function main() {
     --web) menu_web_config >&2 ;;         # 显示 Web 配置菜单
     --ca) menu_ca_vendor >&2 ;;
     --management) menu_config >&2 ;;      # 显示配置管理菜单
+    --clash-split) menu_clash_split >&2 ;; # 显示 Clash 分流菜单
     --route) menu_route >&2 ;;            # 显示路由管理菜单
     --sni) menu_sni_config >&2 ;;         # 显示 SNI 配置菜单
     --custom-sites) menu_custom_sites >&2 ;;

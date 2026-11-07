@@ -75,7 +75,21 @@
 
 SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请自行在客户端修改。
 
-菜单 7 会同时生成 Clash/Mihomo 订阅文件 `~/.xray-script/clash.yaml`。订阅文件按当前 Xray 配置生成，默认使用规则模式（`mode: rule`），包含 `proxies`、`PROXY` 选择组和 `MATCH,PROXY` 规则；如需全局代理，在客户端内切换到「全局」即可，规则/全局/直连由客户端控制。支持 Vision/Reality、XHTTP/Reality、XHTTP+TLS 以及 SNI 上下行分离（`download-settings`）。
+菜单 7 会同时生成 Clash/Mihomo 订阅文件 `~/.xray-script/clash.yaml`。订阅文件按当前 Xray 配置生成，默认使用规则模式（`mode: rule`），支持 Vision/Reality、XHTTP/Reality、XHTTP+TLS 以及 SNI 上下行分离（`download-settings`）。
+
+默认分流方式为「国内直连，国外代理」，生成的规则为：
+
+```yaml
+rules:
+  - GEOIP,LAN,DIRECT
+  - GEOSITE,cn,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY
+```
+
+可在菜单「9 管理配置 → 7 Clash 分流设置」切换为「全部代理」。规则/全局/直连仍可在客户端随时切换；全局模式下所有流量都会经过服务端，国内站点可能被服务端默认的 `geoip:cn` 拦截规则阻断。
+
+生成的文件还包含 `unified-delay: true`（统一延迟测速口径）和 `tcp-concurrent: true`（并发 TCP 握手）。首次加载分流规则时，客户端需要下载 GeoIP/GeoSite 数据。
 
 > Reality 节点会自动写入 `reality-opts.support-x25519mlkem768: true`。Xray-core 自 v26.9.8 起要求客户端在 REALITY 握手时携带 X25519MLKEM768 密钥交换，否则会报 `REALITY authentication failed`。请使用 mihomo v1.19.30 及以上内核（如最新版 Clash Verge、FlClash、Clash Meta for Android）。
 >

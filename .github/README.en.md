@@ -76,7 +76,21 @@ Implemented based on [VMessAEAD / VLESS share link proposal](https://github.com/
 
 In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, modify it in your client.
 
-Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and defaults to rule mode (`mode: rule`), containing `proxies`, a `PROXY` select group, and a `MATCH,PROXY` rule. To proxy all traffic, switch to Global in the client; Rule/Global/Direct are controlled by the client. Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
+Menu 7 also generates a Clash/Mihomo subscription file at `~/.xray-script/clash.yaml`. It is generated from the current Xray configuration and defaults to rule mode (`mode: rule`). Vision/Reality, XHTTP/Reality, XHTTP+TLS, and SNI upstream/downstream separation (`download-settings`) are supported.
+
+The default routing mode is "direct for China, proxy the rest":
+
+```yaml
+rules:
+  - GEOIP,LAN,DIRECT
+  - GEOSITE,cn,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY
+```
+
+Switch to "proxy everything" in "9 Manage configuration → 7 Clash Routing Mode". Rule/Global/Direct can still be changed in the client at any time; in Global mode all traffic goes through the server, so China sites may be blocked by the server's default `geoip:cn` block rule.
+
+The generated file also sets `unified-delay: true` and `tcp-concurrent: true` for consistent latency tests and concurrent TCP handshakes. The client downloads GeoIP/GeoSite data on first use.
 
 > Reality proxies include `reality-opts.support-x25519mlkem768: true`. Xray-core v26.9.8 and later require clients to send the X25519MLKEM768 key share during the REALITY handshake; otherwise the connection fails with `REALITY authentication failed`. Use mihomo v1.19.30 or later (latest Clash Verge, FlClash, or Clash Meta for Android).
 >

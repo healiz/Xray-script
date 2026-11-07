@@ -100,11 +100,20 @@
       "option4": "Change Xray Port",
       "option5": "Enable/Disable geodata auto-update",
       "option6": "Language",
+      "option7": "Clash Routing Mode",
       "info1": "Full config update",
       "info2": "Manage blocking or WARP routing",
       "info3": "Includes Nginx update, domain change, web config",
       "info4": "(Non-SNI) Change Xray listen port and restart service",
-      "info5": "geodata provided by  https://github.com/Loyalsoldier/v2ray-rules-dat "
+      "info5": "geodata provided by  https://github.com/Loyalsoldier/v2ray-rules-dat ",
+      "info6": "Set the routing mode of the Clash/Mihomo subscription: direct for China or proxy everything (default: direct for China)"
+    },
+    "clash_split": {
+      "title": "Clash Routing Mode",
+      "option1": "Direct for China, proxy the rest",
+      "option2": "Proxy everything",
+      "info1": "LAN and mainland China traffic goes direct, everything else uses the proxy (recommended; avoids the server's default geoip:cn block)",
+      "info2": "All traffic uses the proxy; China sites may be blocked by the server's CN block rule. Best for full-global proxying"
     },
     "route_management": {
       "title": "Custom Routing",
@@ -208,6 +217,7 @@
     "short": "Enter shortId (comma separated, default auto-generated): ",
     "short_id_tip": "Supports input 0 to 8 to automatically generate shortId of corresponding length",
     "path": "Enter path (default auto-generated): ",
+    "clash_split": "Select routing mode [1: Direct for China 2: Proxy everything, default 1]: ",
     "warp_ip": "Enter IP to route to WARP",
     "warp_domain": "Enter domain to route to WARP",
     "block_ip": "Enter IP to route to block",
@@ -477,6 +487,13 @@
       "updating": "Updating Xray core...",
       "success": "Xray core updated successfully!",
       "failed": "Xray core update failed, please check your network connection."
+    },
+    "clash_split": {
+      "saved": "Clash routing mode updated",
+      "split": "Direct for China, proxy the rest",
+      "proxy": "Proxy everything",
+      "invalid": "Invalid choice. Enter 1 or 2",
+      "reimport": "Download clash.yaml again and re-import it into the client (the file must be named config.yaml in CMFA)"
     }
   },
   "nginx": {

@@ -100,11 +100,20 @@
       "option4": "修改 Xray 端口",
       "option5": "开/关 geodata 自动更新",
       "option6": "设置语言",
+      "option7": "Clash 分流设置",
       "info1": "更新配置功能为整个配置的更新",
       "info2": "管理屏蔽或 WARP 分流",
       "info3": "包含 Nginx 更新，修改域名，修改 Web 配置等",
       "info4": "(非 SNI 配置) 修改 Xray 监听端口，并自动重启服务",
-      "info5": "geodata 由 https://github.com/Loyalsoldier/v2ray-rules-dat  提供"
+      "info5": "geodata 由 https://github.com/Loyalsoldier/v2ray-rules-dat  提供",
+      "info6": "设置 Clash/Mihomo 订阅的分流方式：国内直连或全部代理（默认国内直连）"
+    },
+    "clash_split": {
+      "title": "Clash 分流设置",
+      "option1": "国内直连，国外代理",
+      "option2": "全部代理",
+      "info1": "局域网与中国大陆站点直连，其余流量走代理（推荐，可避免服务端默认的 geoip:cn 拦截）",
+      "info2": "所有流量都走代理，国内站点可能被服务端的 CN 拦截规则阻断，适合纯全局代理场景"
     },
     "route_management": {
       "title": "自定义分流",
@@ -208,6 +217,7 @@
     "short": "请输入 shortId (多个值请用英文逗号分隔，默认自动生成): ",
     "short_id_tip": "支持输入 0 到 8 自动生成对应倍数长度的 shortId",
     "path": "请输入 path (默认自动生成): ",
+    "clash_split": "请选择分流方式 [1: 国内直连 2: 全部代理，默认 1]: ",
     "warp_ip": "请输入分流到 WARP 的 ip",
     "warp_domain": "请输入分流到 WARP 的 domain",
     "block_ip": "请输入分流到 block 的 ip",
@@ -477,6 +487,13 @@
       "updating": "正在更新 Xray 核心...",
       "success": "Xray 核心更新成功！",
       "failed": "Xray 核心更新失败，请检查网络连接。"
+    },
+    "clash_split": {
+      "saved": "Clash 分流设置已更新",
+      "split": "国内直连，国外代理",
+      "proxy": "全部代理",
+      "invalid": "无效的选择，请输入 1 或 2",
+      "reimport": "请重新下载 clash.yaml 并重新导入客户端（CMFA 文件名必须为 config.yaml）"
     }
   },
   "nginx": {

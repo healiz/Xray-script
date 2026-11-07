@@ -1,5 +1,5 @@
 {
-  "version": "v2026.11.08",
+  "version": "v2026.11.08-1",
   "path": "",
   "language": "",
   "xray": {
@@ -28,6 +28,9 @@
     "shortIds": [
       ""
     ]
+  },
+  "clash": {
+    "split": "split"
   },
   "nginx": {
     "version": "",

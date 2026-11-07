@@ -626,6 +626,8 @@ function get_clash_proxy() {
 # =============================================================================
 function write_clash_config() {
     local clash_file="${SCRIPT_CONFIG_DIR}/clash.yaml"
+    # 分流方式：split = 国内直连、国外代理；proxy = 全部走代理
+    local split_mode="$(echo "${SCRIPT_CONFIG}" | jq -r '.clash.split // "split"')"
     mkdir -p "${SCRIPT_CONFIG_DIR}" || return 1
 
     {
@@ -633,6 +635,9 @@ function write_clash_config() {
         echo 'allow-lan: false'
         echo 'mode: rule'
         echo 'log-level: info'
+        # 统一延迟测速口径，并允许 TCP 多路并发握手（Mihomo v1.16+）
+        echo 'unified-delay: true'
+        echo 'tcp-concurrent: true'
         echo 'proxies:'
         local proxy
         for proxy in "${CLASH_PROXIES[@]}"; do
@@ -647,7 +652,18 @@ function write_clash_config() {
             printf '      - %s\n' "$(yaml_quote "${name}")"
         done
         echo 'rules:'
-        echo '  - MATCH,PROXY'
+        case "${split_mode}" in
+        proxy)
+            echo '  - MATCH,PROXY'
+            ;;
+        *)
+            # 国内与局域网直连，避免服务端默认的 geoip:cn 拦截规则误伤
+            echo '  - GEOIP,LAN,DIRECT'
+            echo '  - GEOSITE,cn,DIRECT'
+            echo '  - GEOIP,CN,DIRECT'
+            echo '  - MATCH,PROXY'
+            ;;
+        esac
     } >"${clash_file}"
 
     printf '%s\n' "${clash_file}"
