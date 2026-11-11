@@ -97,6 +97,37 @@ rules:
 
 Mihomo 不支持 VLESS mKCP，也不支持 Trojan 的 XHTTP 传输，这两种模式会提示暂不支持，但仍会正常输出 VLESS/Trojan 分享链接与二维码。
 
+## 合并多台服务器的 Clash 配置
+
+如果有多台服务器，可以分别导出每台生成的 `~/.xray-script/clash.yaml`，再用仓库自带的 `tool/merge-clash.py` 合并成一个文件（脚本可在本地或任意一台服务器上运行）：
+
+```bash
+# 依赖（Debian/Ubuntu）
+apt install -y python3-yaml
+# Windows / 其他环境
+python -m pip install pyyaml
+
+python3 ~/.xray-script/tool/merge-clash.py -o clash-merged.yaml server-a.yaml server-b.yaml
+```
+
+合并后会生成三个策略组：
+
+| 策略组 | 类型 | 作用 |
+| --- | --- | --- |
+| `AUTO` | `url-test` | 自动测速，选择延迟最低的节点 |
+| `FALLBACK` | `fallback` | 按输入顺序故障转移 |
+| `PROXY` | `select` | 手动选择节点、`AUTO`、`FALLBACK` 或 `DIRECT` |
+
+`rules` 默认与单机版一致（国内直连），末尾为 `MATCH,PROXY`。`PROXY` 默认选中 `AUTO`，所以不手动切换时就是自动选择节点；需要固定某台服务器时，在客户端的 `PROXY` 组里手动选择即可。
+
+节点重名时脚本会自动加上输入文件名前缀（例如 `server-b-Vision`），也可以用 `--label` 指定更直观的名称：
+
+```bash
+python3 tool/merge-clash.py -o clash-merged.yaml --label 香港 --label 日本 a.yaml b.yaml
+```
+
+加 `--proxy-all` 可改为全部代理。合并完成后同样导入客户端，文件名仍为 `config.yaml`。
+
 ## 如何使用
 
 * 获取

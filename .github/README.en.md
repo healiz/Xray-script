@@ -98,6 +98,37 @@ The generated file also sets `unified-delay: true` and `tcp-concurrent: true` fo
 
 Mihomo does not support VLESS mKCP or Trojan over XHTTP. Those modes show an unsupported notice, while the VLESS/Trojan share link and QR code are still printed normally.
 
+## Merge Clash Configs from Multiple Servers
+
+If you run more than one server, export each generated `~/.xray-script/clash.yaml` and merge them with the bundled `tool/merge-clash.py` (run it locally or on any server):
+
+```bash
+# Dependency (Debian/Ubuntu)
+apt install -y python3-yaml
+# Windows / other platforms
+python -m pip install pyyaml
+
+python3 ~/.xray-script/tool/merge-clash.py -o clash-merged.yaml server-a.yaml server-b.yaml
+```
+
+The merged file contains three proxy groups:
+
+| Group | Type | Purpose |
+| --- | --- | --- |
+| `AUTO` | `url-test` | Automatically picks the lowest-latency node |
+| `FALLBACK` | `fallback` | Fails over in input order |
+| `PROXY` | `select` | Manually pick a node, `AUTO`, `FALLBACK`, or `DIRECT` |
+
+`rules` match the single-server default (direct for China) and end with `MATCH,PROXY`. `PROXY` selects `AUTO` by default, so automatic selection is used until you manually pick a node. To pin one server, select it in the client's `PROXY` group.
+
+Duplicate node names are prefixed with the input file name (for example `server-b-Vision`). Use `--label` for friendlier names:
+
+```bash
+python3 tool/merge-clash.py -o clash-merged.yaml --label HK --label JP a.yaml b.yaml
+```
+
+Add `--proxy-all` to proxy everything. Import the result into the client as `config.yaml`, same as before.
+
 ## How to Use
 
 * Download
